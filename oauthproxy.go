@@ -47,8 +47,8 @@ type OauthProxy struct {
 }
 
 func NewOauthProxy(opts *Options, validator func(string) bool) *OauthProxy {
-	login, _ := url.Parse("https://accounts.google.com/o/oauth2/auth")
-	redeem, _ := url.Parse("https://accounts.google.com/o/oauth2/token")
+	login, _ := url.Parse("https://my.usa.gov/users/sign_in?client_id=40de87b3934d3888b1e3656fd959dc5310e7745aaa66aa08a1858c47451e0cb5")
+	redeem, _ := url.Parse("https://my.usa.gov/oauth/token")
 	serveMux := http.NewServeMux()
 	for _, u := range opts.proxyUrls {
 		path := u.Path
