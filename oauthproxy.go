@@ -17,10 +17,10 @@ import (
 	"github.com/bitly/go-simplejson"
 )
 
-const pingPath = "/ping"
-const signInPath = "/oauth2/sign_in"
-const oauthStartPath = "/oauth2/start"
-const oauthCallbackPath = "/oauth2/callback"
+const pingPath = "/myusa/ping"
+const signInPath = "/myusa/oauth2/sign_in"
+const oauthStartPath = "/myusa/oauth2/start"
+const oauthCallbackPath = "/myusa/oauth2/callback"
 
 type OauthProxy struct {
 	CookieSeed      string
@@ -47,8 +47,8 @@ type OauthProxy struct {
 }
 
 func NewOauthProxy(opts *Options, validator func(string) bool) *OauthProxy {
-	login, _ := url.Parse("https://my.usa.gov/users/sign_in?client_id=40de87b3934d3888b1e3656fd959dc5310e7745aaa66aa08a1858c47451e0cb5")
-	redeem, _ := url.Parse("https://my.usa.gov/oauth/token")
+	login, _ := url.Parse("https://myusa-staging.18f.us/oauth/authorize")
+	redeem, _ := url.Parse("https://myusa-staging.18f.us/oauth/token")
 	serveMux := http.NewServeMux()
 	for _, u := range opts.proxyUrls {
 		path := u.Path
@@ -80,7 +80,7 @@ func NewOauthProxy(opts *Options, validator func(string) bool) *OauthProxy {
 
 		clientID:           opts.ClientID,
 		clientSecret:       opts.ClientSecret,
-		oauthScope:         "profile email",
+		oauthScope:         "profile.email",
 		oauthRedemptionUrl: redeem,
 		oauthLoginUrl:      login,
 		serveMux:           serveMux,
@@ -157,27 +157,52 @@ func (p *OauthProxy) redeemCode(code string) (string, string, error) {
 	}
 
 	idToken, err := json.Get("id_token").String()
+	email := ""
+	if err == nil {
+		email, err = googleGetEmail(idToken)
+	} else {
+		email, err = myUsaGetEmail(access_token)
+        }
 	if err != nil {
 		return "", "", err
 	}
+	return access_token, email, nil
+}
 
+func myUsaGetEmail(access_token string)(string, error) {
+	req, err := http.NewRequest("GET",
+		"https://myusa-staging.18f.us/api/v1/profile?access_token=" + access_token,
+		nil)
+	if err != nil {
+		log.Printf("failed building request %s", err)
+		return "", err
+	}
+	json, err := apiRequest(req)
+	if err != nil {
+		log.Printf("failed making request %s", err)
+		return "", err
+	}
+	return json.Get("email").String()
+}
+
+func googleGetEmail(idToken string)(string, error) {
 	// id_token is a base64 encode ID token payload
 	// https://developers.google.com/accounts/docs/OAuth2Login#obtainuserinfo
 	jwt := strings.Split(idToken, ".")
 	b, err := jwtDecodeSegment(jwt[1])
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 	data, err := simplejson.NewJson(b)
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 	email, err := data.Get("email").String()
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 
-	return access_token, email, nil
+	return email, nil
 }
 
 func jwtDecodeSegment(seg string) ([]byte, error) {

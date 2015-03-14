@@ -97,18 +97,15 @@ func getTemplates() *template.Template {
 </head>
 <body>
 	<div class="signin center">
-          <link href='//fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
-          <link href='//s3.amazonaws.com/myusa-static/button.min.css' rel='stylesheet' type='text/css'>
-          <p>
-            <a href="https://myusa-staging.18f.us/users/sign_in?client_id=40de87b3934d3888b1e3656fd959dc5310e7745aaa66aa08a1858c47451e0cb5" class="btn btn-social btn-myusa">Connect with MyUSA</a>
-          </p>
+	<link href='//fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+	<link href='//s3.amazonaws.com/myusa-static/button.min.css' rel='stylesheet' type='text/css'>
 
-	<form method="GET" action="/oauth2/start">
+	<form method="GET" action="/myusa/oauth2/start">
 	<input type="hidden" name="rd" value="{{.Redirect}}">
 	{{ if .SignInMessage }}
 	<p>{{.SignInMessage}}</p>
 	{{ end}}
-	<button type="submit" class="btn">Sign in with a Google Account</button><br/>
+	<button type="submit" class="btn btn-social btn-myusa">Connect with MyUSA</a>
 	</form>
 	</div>
 
