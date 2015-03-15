@@ -34,6 +34,7 @@ type OauthProxy struct {
 	redirectUrl         *url.URL // the url to receive requests at
 	oauthRedemptionUrl  *url.URL // endpoint to redeem the code
 	oauthLoginUrl       *url.URL // to redirect the user to
+	oauthProfileUrl     *url.URL // to retrieve user info (if not Google)
 	oauthScope          string
 	clientID            string
 	clientSecret        string
@@ -47,8 +48,6 @@ type OauthProxy struct {
 }
 
 func NewOauthProxy(opts *Options, validator func(string) bool) *OauthProxy {
-	login, _ := url.Parse("https://myusa-staging.18f.us/oauth/authorize")
-	redeem, _ := url.Parse("https://myusa-staging.18f.us/oauth/token")
 	serveMux := http.NewServeMux()
 	for _, u := range opts.proxyUrls {
 		path := u.Path
@@ -80,9 +79,10 @@ func NewOauthProxy(opts *Options, validator func(string) bool) *OauthProxy {
 
 		clientID:           opts.ClientID,
 		clientSecret:       opts.ClientSecret,
-		oauthScope:         "profile.email",
-		oauthRedemptionUrl: redeem,
-		oauthLoginUrl:      login,
+		oauthScope:         opts.Scope,
+		oauthRedemptionUrl: opts.redeemUrl,
+		oauthLoginUrl:      opts.loginUrl,
+		oauthProfileUrl:    opts.profileUrl,
 		serveMux:           serveMux,
 		redirectUrl:        redirectUrl,
 		skipAuthRegex:      opts.SkipAuthRegex,
@@ -161,7 +161,7 @@ func (p *OauthProxy) redeemCode(code string) (string, string, error) {
 	if err == nil {
 		email, err = googleGetEmail(idToken)
 	} else {
-		email, err = myUsaGetEmail(access_token)
+		email, err = getEmail(access_token, p.oauthProfileUrl.String())
         }
 	if err != nil {
 		return "", "", err
@@ -169,10 +169,9 @@ func (p *OauthProxy) redeemCode(code string) (string, string, error) {
 	return access_token, email, nil
 }
 
-func myUsaGetEmail(access_token string)(string, error) {
+func getEmail(access_token string, profile_url string)(string, error) {
 	req, err := http.NewRequest("GET",
-		"https://myusa-staging.18f.us/api/v1/profile?access_token=" + access_token,
-		nil)
+		profile_url + "?access_token=" + access_token, nil)
 	if err != nil {
 		log.Printf("failed building request %s", err)
 		return "", err
