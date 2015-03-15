@@ -35,6 +35,9 @@ type Options struct {
 	redirectUrl   *url.URL
 	proxyUrls     []*url.URL
 	CompiledRegex []*regexp.Regexp
+	loginUrl      *url.URL
+	redeemUrl     *url.URL
+	profileUrl    *url.URL
 }
 
 func NewOptions() *Options {
@@ -98,6 +101,10 @@ func (o *Options) Validate() error {
 		}
 		o.CompiledRegex = append(o.CompiledRegex, CompiledRegex)
 	}
+
+	o.loginUrl, msgs = parseUrl(o.LoginUrl, "login", msgs)
+	o.redeemUrl, msgs = parseUrl(o.RedeemUrl, "redeem", msgs)
+	o.profileUrl, msgs = parseUrl(o.ProfileUrl, "profile", msgs)
 
 	if len(msgs) != 0 {
 		return fmt.Errorf("Invalid configuration:\n  %s",
