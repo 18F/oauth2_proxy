@@ -43,6 +43,10 @@ func main() {
 	flagSet.Duration("cookie-expire", time.Duration(168)*time.Hour, "expire timeframe for cookie")
 	flagSet.Bool("cookie-https-only", true, "set HTTPS only cookie")
 	flagSet.Bool("cookie-httponly", true, "set HttpOnly cookie")
+	flagSet.String("login-url", "", "Authentication endpoint")
+	flagSet.String("redeem-url", "", "Token redemption endpoint")
+	flagSet.String("profile-url", "", "Profile access endpoint")
+	flagSet.String("scope", "", "Oauth scope specification")
 
 	flagSet.Parse(os.Args[1:])
 

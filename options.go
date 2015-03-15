@@ -29,7 +29,7 @@ type Options struct {
 	LoginUrl                string        `flag:"login-url" cfg:"login_url"`
 	RedeemUrl               string        `flag:"redeem-url" cfg:"redeem_url"`
 	ProfileUrl              string        `flag:"profile-url" cfg:"profile_url"`
-	Scope                   string        `flag:"oauth-scope" cfg:"oauth_scope"`
+	Scope                   string        `flag:"scope" cfg:"scope"`
 
 	// internal values that are set after config validation
 	redirectUrl   *url.URL
