@@ -26,6 +26,10 @@ type Options struct {
 	GoogleAppsDomains       []string      `flag:"google-apps-domain" cfg:"google_apps_domains"`
 	Upstreams               []string      `flag:"upstream" cfg:"upstreams"`
 	SkipAuthRegex           []string      `flag:"skip-auth-regex" cfg:"skip_auth_regex"`
+	LoginUrl                string        `flag:"login-url" cfg:"login_url"`
+	RedeemUrl               string        `flag:"redeem-url" cfg:"redeem_url"`
+	ProfileUrl              string        `flag:"profile-url" cfg:"profile_url"`
+	Scope                   string        `flag:"oauth-scope" cfg:"oauth_scope"`
 
 	// internal values that are set after config validation
 	redirectUrl   *url.URL
@@ -41,6 +45,9 @@ func NewOptions() *Options {
 		CookieHttpOnly:      true,
 		PassBasicAuth:       true,
 		CookieExpire:        time.Duration(168) * time.Hour,
+		LoginUrl:            "https://accounts.google.com/o/oauth2/auth",
+		RedeemUrl:           "https://accounts.google.com/o/oauth2/token",
+		Scope:               "profile email",
 	}
 }
 
