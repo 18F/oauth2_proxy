@@ -51,6 +51,15 @@ func NewOptions() *Options {
 	}
 }
 
+func parseUrl(to_parse string, urltype string, msgs []string) (*url.URL, []string) {
+	parsed, err := url.Parse(to_parse)
+	if err != nil {
+		return nil, append(msgs, fmt.Sprintf(
+			"error parsing %s-url=%q %s", urltype, to_parse, err))
+	}
+	return parsed, msgs
+}
+
 func (o *Options) Validate() error {
 	msgs := make([]string, 0)
 	if len(o.Upstreams) < 1 {
@@ -66,12 +75,7 @@ func (o *Options) Validate() error {
 		msgs = append(msgs, "missing setting: client-secret")
 	}
 
-	redirectUrl, err := url.Parse(o.RedirectUrl)
-	if err != nil {
-		msgs = append(msgs, fmt.Sprintf(
-			"error parsing redirect-url=%q %s", o.RedirectUrl, err))
-	}
-	o.redirectUrl = redirectUrl
+	o.redirectUrl, msgs = parseUrl(o.RedirectUrl, "redirect", msgs)
 
 	for _, u := range o.Upstreams {
 		upstreamUrl, err := url.Parse(u)
