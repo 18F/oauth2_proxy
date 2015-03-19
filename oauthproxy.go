@@ -180,16 +180,16 @@ func (p *OauthProxy) redeemCode(code string) (string, string, error) {
 		email, err = googleGetEmail(idToken)
 	} else {
 		email, err = getEmail(access_token, p.oauthProfileUrl.String())
-        }
+	}
 	if err != nil {
 		return "", "", err
 	}
 	return access_token, email, nil
 }
 
-func getEmail(access_token string, profile_url string)(string, error) {
+func getEmail(access_token string, profile_url string) (string, error) {
 	req, err := http.NewRequest("GET",
-		profile_url + "?access_token=" + access_token, nil)
+		profile_url+"?access_token="+access_token, nil)
 	if err != nil {
 		log.Printf("failed building request %s", err)
 		return "", err
@@ -202,7 +202,7 @@ func getEmail(access_token string, profile_url string)(string, error) {
 	return json.Get("email").String()
 }
 
-func googleGetEmail(idToken string)(string, error) {
+func googleGetEmail(idToken string) (string, error) {
 	// id_token is a base64 encode ID token payload
 	// https://developers.google.com/accounts/docs/OAuth2Login#obtainuserinfo
 	jwt := strings.Split(idToken, ".")
