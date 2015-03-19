@@ -1,10 +1,10 @@
 package main
 
 import (
+	"github.com/bmizerany/assert"
 	"net/url"
 	"strings"
 	"testing"
-	"github.com/bmizerany/assert"
 )
 
 func testOptions() *Options {
@@ -93,10 +93,10 @@ func TestCompiledRegexError(t *testing.T) {
 func TestDefaultApiSettings(t *testing.T) {
 	o := testOptions()
 	assert.Equal(t, nil, o.Validate())
-	assert.Equal(t, &url.URL{ Scheme: "https", Host: "accounts.google.com",
+	assert.Equal(t, &url.URL{Scheme: "https", Host: "accounts.google.com",
 		Path: "/o/oauth2/auth"}, o.loginUrl)
 
-	assert.Equal(t, &url.URL{ Scheme: "https", Host: "accounts.google.com",
+	assert.Equal(t, &url.URL{Scheme: "https", Host: "accounts.google.com",
 		Path: "/o/oauth2/token"}, o.redeemUrl)
 	assert.Equal(t, &url.URL{}, o.profileUrl)
 	assert.Equal(t, "profile email", o.Scope)
