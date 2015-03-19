@@ -3,7 +3,20 @@ package main
 import (
 	"html/template"
 	"log"
+	"path"
 )
+
+func loadTemplates(dir string) *template.Template {
+	if dir == "" {
+		return getTemplates()
+	}
+	log.Printf("using custom template directory %q", dir)
+	t, err := template.New("").ParseFiles(path.Join(dir, "sign_in.html"), path.Join(dir, "error.html"))
+	if err != nil {
+		log.Fatalf("failed parsing template %s", err)
+	}
+	return t
+}
 
 func getTemplates() *template.Template {
 	t, err := template.New("foo").Parse(`{{define "sign_in.html"}}
@@ -126,7 +139,7 @@ func getTemplates() *template.Template {
 </html>
 {{end}}`)
 	if err != nil {
-		log.Fatalf("failed parsing template %s", err.Error())
+		log.Fatalf("failed parsing template %s", err)
 	}
 
 	t, err = t.Parse(`{{define "error.html"}}
@@ -144,7 +157,7 @@ func getTemplates() *template.Template {
 </body>
 </html>{{end}}`)
 	if err != nil {
-		log.Fatalf("failed parsing template %s", err.Error())
+		log.Fatalf("failed parsing template %s", err)
 	}
 	return t
 }
