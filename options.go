@@ -31,10 +31,10 @@ type Options struct {
 	SkipAuthRegex  []string `flag:"skip-auth-regex" cfg:"skip_auth_regex"`
 	PassBasicAuth  bool     `flag:"pass-basic-auth" cfg:"pass_basic_auth"`
 	PassHostHeader bool     `flag:"pass-host-header" cfg:"pass_host_header"`
-	LoginUrl                string        `flag:"login-url" cfg:"login_url"`
-	RedeemUrl               string        `flag:"redeem-url" cfg:"redeem_url"`
-	ProfileUrl              string        `flag:"profile-url" cfg:"profile_url"`
-	Scope                   string        `flag:"scope" cfg:"scope"`
+	LoginUrl       string   `flag:"login-url" cfg:"login_url"`
+	RedeemUrl      string   `flag:"redeem-url" cfg:"redeem_url"`
+	ProfileUrl     string   `flag:"profile-url" cfg:"profile_url"`
+	Scope          string   `flag:"scope" cfg:"scope"`
 
 	// internal values that are set after config validation
 	redirectUrl   *url.URL
