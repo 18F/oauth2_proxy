@@ -64,9 +64,11 @@ Usage of google_auth_proxy:
   -config="": path to config file
   -cookie-domain="": an optional cookie domain to force cookies to (ie: .yourcompany.com)*
   -cookie-expire=168h0m0s: expire timeframe for cookie
-  -cookie-httponly=true: set HttpOnly cookie
-  -cookie-https-only=true: set HTTPS only cookie
+  -cookie-httponly=true: set HttpOnly cookie flag
+  -cookie-https-only=true: set secure (HTTPS) cookies (deprecated. use --cookie-secure setting)
   -cookie-secret="": the seed string for secure cookies
+  -cookie-secure=true: set secure (HTTPS) cookie flag
+  -custom-templates-dir="": path to custom html templates
   -display-htpasswd-form=true: display username / password login form if an htpasswd file is provided
   -google-apps-domain=: authenticate against the given Google apps domain (may be given multiple times)
   -htpasswd-file="": additionally authenticate against a htpasswd file. Entries must be created with "htpasswd -s" for SHA encryption
@@ -75,7 +77,6 @@ Usage of google_auth_proxy:
   -pass-host-header=true: pass the request Host Header to upstream
   -redirect-url="": the OAuth Redirect URL. ie: "https://internalapp.yourcompany.com/oauth2/callback"
   -skip-auth-regex=: bypass authentication for requests path's that match (may be given multiple times)
-  -custom templates-dir="": path to custom html templates
   -upstream=: the http url(s) of the upstream endpoint. If multiple, routing is based on path
   -version=false: print version string
 ```
@@ -117,11 +118,10 @@ The command line to run `google_auth_proxy` would look like this:
 
 ```bash
 ./google_auth_proxy \
-   --redirect-url="https://internal.yourcompany.com/oauth2/callback"  \
    --google-apps-domain="yourcompany.com"  \
    --upstream=http://127.0.0.1:8080/ \
    --cookie-secret=... \
-   --cookie-https-only=true \
+   --cookie-secure=true \
    --client-id=... \
    --client-secret=...
 ```
@@ -134,4 +134,12 @@ Google Auth Proxy responds directly to the following endpoints. All other endpoi
 * /ping - returns an 200 OK response
 * /oauth2/sign_in - the login page, which also doubles as a sign out page (it clears cookies)
 * /oauth2/start - a URL that will redirect to start the OAuth cycle
-* /oauth2/callback - the URL used at the end of the OAuth cycle
+* /oauth2/callback - the URL used at the end of the OAuth cycle. The oauth app will be configured with this ass the callback url.
+
+## Logging Format
+
+Google Auth Proxy logs requests to stdout in a format similar to Apache Combined Log.
+
+```
+<REMOTE_ADDRESS> - <user@domain.com> [19/Mar/2015:17:20:19 -0400] <HOST_HEADER> GET <UPSTREAM_HOST> "/path/" HTTP/1.1 "<USER_AGENT>" <RESPONSE_CODE> <RESPONSE_BYTES> <REQUEST_DURATION>
+````

@@ -24,7 +24,8 @@ type Options struct {
 	CookieSecret    string        `flag:"cookie-secret" cfg:"cookie_secret" env:"GOOGLE_AUTH_PROXY_COOKIE_SECRET"`
 	CookieDomain    string        `flag:"cookie-domain" cfg:"cookie_domain" env:"GOOGLE_AUTH_PROXY_COOKIE_DOMAIN"`
 	CookieExpire    time.Duration `flag:"cookie-expire" cfg:"cookie_expire" env:"GOOGLE_AUTH_PROXY_COOKIE_EXPIRE"`
-	CookieHttpsOnly bool          `flag:"cookie-https-only" cfg:"cookie_https_only"`
+	CookieHttpsOnly bool          `flag:"cookie-https-only" cfg:"cookie_https_only"` // deprecated use cookie-secure
+	CookieSecure    bool          `flag:"cookie-secure" cfg:"cookie_secure"`
 	CookieHttpOnly  bool          `flag:"cookie-httponly" cfg:"cookie_httponly"`
 
 	Upstreams      []string `flag:"upstream" cfg:"upstreams"`
@@ -35,6 +36,8 @@ type Options struct {
 	RedeemUrl      string   `flag:"redeem-url" cfg:"redeem_url"`
 	ProfileUrl     string   `flag:"profile-url" cfg:"profile_url"`
 	Scope          string   `flag:"scope" cfg:"scope"`
+
+	RequestLogging bool `flag:"request-logging" cfg:"request_logging"`
 
 	// internal values that are set after config validation
 	redirectUrl   *url.URL
@@ -50,10 +53,12 @@ func NewOptions() *Options {
 		HttpAddress:         "127.0.0.1:4180",
 		DisplayHtpasswdForm: true,
 		CookieHttpsOnly:     true,
+		CookieSecure:        true,
 		CookieHttpOnly:      true,
 		CookieExpire:        time.Duration(168) * time.Hour,
 		PassBasicAuth:       true,
 		PassHostHeader:      true,
+		RequestLogging:      true,
 		LoginUrl:            "https://accounts.google.com/o/oauth2/auth",
 		RedeemUrl:           "https://accounts.google.com/o/oauth2/token",
 		Scope:               "profile email",

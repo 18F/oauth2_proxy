@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 
@@ -43,8 +44,12 @@ func main() {
 	flagSet.String("cookie-secret", "", "the seed string for secure cookies")
 	flagSet.String("cookie-domain", "", "an optional cookie domain to force cookies to (ie: .yourcompany.com)*")
 	flagSet.Duration("cookie-expire", time.Duration(168)*time.Hour, "expire timeframe for cookie")
-	flagSet.Bool("cookie-https-only", true, "set HTTPS only cookie")
-	flagSet.Bool("cookie-httponly", true, "set HttpOnly cookie")
+	flagSet.Bool("cookie-https-only", true, "set secure (HTTPS) cookies (deprecated. use --cookie-secure setting)")
+	flagSet.Bool("cookie-secure", true, "set secure (HTTPS) cookie flag")
+	flagSet.Bool("cookie-httponly", true, "set HttpOnly cookie flag")
+
+	flagSet.Bool("request-logging", true, "Log requests to stdout")
+
 	flagSet.String("login-url", "", "Authentication endpoint")
 	flagSet.String("redeem-url", "", "Token redemption endpoint")
 	flagSet.String("profile-url", "", "Profile access endpoint")
@@ -53,7 +58,7 @@ func main() {
 	flagSet.Parse(os.Args[1:])
 
 	if *showVersion {
-		fmt.Printf("google_auth_proxy v%s\n", VERSION)
+		fmt.Printf("google_auth_proxy v%s (built with %s)\n", VERSION, runtime.Version())
 		return
 	}
 
@@ -115,7 +120,7 @@ func main() {
 	}
 	log.Printf("listening on %s", listenAddr)
 
-	server := &http.Server{Handler: oauthproxy}
+	server := &http.Server{Handler: LoggingHandler(os.Stdout, oauthproxy, opts.RequestLogging)}
 	err = server.Serve(listener)
 	if err != nil && !strings.Contains(err.Error(), "use of closed network connection") {
 		log.Printf("ERROR: http.Serve() - %s", err)
