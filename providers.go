@@ -86,19 +86,20 @@ type MyUsaProvider struct {
 }
 
 func NewMyUsaProvider(opts *Options) *MyUsaProvider {
+	const myUsaHost string = "alpha.my.usa.gov"
 	if opts.LoginUrl == "" {
 		opts.loginUrl = &url.URL{Scheme: "https",
-			Host: "myusa-staging.18f.us",
+			Host: myUsaHost,
 			Path: "/oauth/authorize"}
 	}
 	if opts.RedeemUrl == "" {
 		opts.redeemUrl = &url.URL{Scheme: "https",
-			Host: "myusa-staging.18f.us",
+			Host: myUsaHost,
 			Path: "/oauth/token"}
 	}
 	if opts.ProfileUrl == "" {
 		opts.profileUrl = &url.URL{Scheme: "https",
-			Host: "myusa-staging.18f.us",
+			Host: myUsaHost,
 			Path: "/api/v1/profile"}
 	}
 	if opts.Scope == "" {
