@@ -17,7 +17,7 @@ import (
 )
 
 func main() {
-	flagSet := flag.NewFlagSet("google_auth_proxy", flag.ExitOnError)
+	flagSet := flag.NewFlagSet("oauth2_proxy", flag.ExitOnError)
 
 	googleAppsDomains := StringArray{}
 	upstreams := StringArray{}
@@ -59,7 +59,7 @@ func main() {
 	flagSet.Parse(os.Args[1:])
 
 	if *showVersion {
-		fmt.Printf("google_auth_proxy v%s (built with %s)\n", VERSION, runtime.Version())
+		fmt.Printf("oauth2_proxy v%s (built with %s)\n", VERSION, runtime.Version())
 		return
 	}
 
