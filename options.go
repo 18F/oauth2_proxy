@@ -32,6 +32,10 @@ type Options struct {
 	SkipAuthRegex  []string `flag:"skip-auth-regex" cfg:"skip_auth_regex"`
 	PassBasicAuth  bool     `flag:"pass-basic-auth" cfg:"pass_basic_auth"`
 	PassHostHeader bool     `flag:"pass-host-header" cfg:"pass_host_header"`
+
+	// These options allow for other providers besides Google, with
+	// potential overrides.
+	Provider       string   `flag:"provider" cfg:"provider"`
 	LoginUrl       string   `flag:"login-url" cfg:"login_url"`
 	RedeemUrl      string   `flag:"redeem-url" cfg:"redeem_url"`
 	ProfileUrl     string   `flag:"profile-url" cfg:"profile_url"`
@@ -46,6 +50,7 @@ type Options struct {
 	loginUrl      *url.URL
 	redeemUrl     *url.URL
 	profileUrl    *url.URL
+	provider      Provider
 }
 
 func NewOptions() *Options {
@@ -59,9 +64,6 @@ func NewOptions() *Options {
 		PassBasicAuth:       true,
 		PassHostHeader:      true,
 		RequestLogging:      true,
-		LoginUrl:            "https://accounts.google.com/o/oauth2/auth",
-		RedeemUrl:           "https://accounts.google.com/o/oauth2/token",
-		Scope:               "profile email",
 	}
 }
 
@@ -116,6 +118,7 @@ func (o *Options) Validate() error {
 	o.loginUrl, msgs = parseUrl(o.LoginUrl, "login", msgs)
 	o.redeemUrl, msgs = parseUrl(o.RedeemUrl, "redeem", msgs)
 	o.profileUrl, msgs = parseUrl(o.ProfileUrl, "profile", msgs)
+	o.provider = NewProvider(o)
 
 	if len(msgs) != 0 {
 		return fmt.Errorf("Invalid configuration:\n  %s",
