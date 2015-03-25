@@ -1,12 +1,12 @@
 language: go
 go:
-  - 1.3.3
-  - 1.4.2
+- 1.3.3
+- 1.4.2
 script:
-  - curl -s https://raw.githubusercontent.com/pote/gpm/v1.3.1/bin/gpm > gpm
-  - chmod +x gpm
-  - ./gpm install
-  - ./test.sh
+- curl -s https://raw.githubusercontent.com/pote/gpm/v1.3.1/bin/gpm > gpm
+- chmod +x gpm
+- "./gpm install"
+- "./test.sh"
 notifications:
   email: false
-
+  webhooks: http://project-monitor.cf.18f.us/projects/oauth2-proxy/status
