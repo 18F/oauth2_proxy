@@ -14,7 +14,7 @@ type MyUsaProvider struct {
 	*ProviderData
 }
 
-func NewMyUsaProvider(p *ProviderData) *MyUsaProvider {
+func NewMyUsaProvider(p *ProviderData) MyUsaProvider {
 	const myUsaHost string = "alpha.my.usa.gov"
 	if p.LoginUrl.String() == "" {
 		p.LoginUrl = &url.URL{Scheme: "https",
@@ -34,10 +34,10 @@ func NewMyUsaProvider(p *ProviderData) *MyUsaProvider {
 	if p.Scope == "" {
 		p.Scope = "profile.email"
 	}
-	return &MyUsaProvider{ProviderData: p}
+	return MyUsaProvider{ProviderData: p}
 }
 
-func (s *MyUsaProvider) GetEmailAddress(auth_response *simplejson.Json,
+func (s MyUsaProvider) GetEmailAddress(auth_response *simplejson.Json,
 	access_token string) (string, error) {
 	req, err := http.NewRequest("GET",
 		s.ProfileUrl.String()+"?access_token="+access_token, nil)

@@ -12,7 +12,7 @@ type GoogleProvider struct {
 	*ProviderData
 }
 
-func NewGoogleProvider(p *ProviderData) *GoogleProvider {
+func NewGoogleProvider(p *ProviderData) GoogleProvider {
 	if p.LoginUrl.String() == "" {
 		p.LoginUrl = &url.URL{Scheme: "https",
 			Host: "accounts.google.com",
@@ -26,10 +26,10 @@ func NewGoogleProvider(p *ProviderData) *GoogleProvider {
 	if p.Scope == "" {
 		p.Scope = "profile email"
 	}
-	return &GoogleProvider{ProviderData: p}
+	return GoogleProvider{ProviderData: p}
 }
 
-func (s *GoogleProvider) GetEmailAddress(auth_response *simplejson.Json,
+func (s GoogleProvider) GetEmailAddress(auth_response *simplejson.Json,
 	unused_access_token string) (string, error) {
 	idToken, err := auth_response.Get("id_token").String()
 	if err != nil {
