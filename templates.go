@@ -113,7 +113,7 @@ func getTemplates() *template.Template {
 	<link href='//fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
 	<link href='//s3.amazonaws.com/myusa-static/button.min.css' rel='stylesheet' type='text/css'>
 
-	<form method="GET" action="/myusa/oauth2/start">
+	<form method="GET" action="/oauth2/start">
 	<input type="hidden" name="rd" value="{{.Redirect}}">
 	{{ if .SignInMessage }}
 	<p>{{.SignInMessage}}</p>
