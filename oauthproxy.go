@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -16,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/18F/oauth2_proxy/api"
 	"github.com/bitly/go-simplejson"
 )
 
@@ -128,9 +128,9 @@ func NewOauthProxy(opts *Options, validator func(string) bool) *OauthProxy {
 		clientID:           opts.ClientID,
 		clientSecret:       opts.ClientSecret,
 		oauthScope:         opts.Scope,
-		oauthRedemptionUrl: opts.redeemUrl,
-		oauthLoginUrl:      opts.loginUrl,
-		oauthProfileUrl:    opts.profileUrl,
+		oauthRedemptionUrl: opts.provider.Data().RedeemUrl,
+		oauthLoginUrl:      opts.provider.Data().LoginUrl,
+		oauthProfileUrl:    opts.provider.Data().ProfileUrl,
 		serveMux:           serveMux,
 		redirectUrl:        redirectUrl,
 		skipAuthRegex:      opts.SkipAuthRegex,
@@ -171,28 +171,6 @@ func (p *OauthProxy) GetLoginURL(host, redirect string) string {
 	return fmt.Sprintf("%s?%s", p.oauthLoginUrl, params.Encode())
 }
 
-func apiRequest(req *http.Request) (*simplejson.Json, error) {
-	httpclient := &http.Client{}
-	resp, err := httpclient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	body, err := ioutil.ReadAll(resp.Body)
-	resp.Body.Close()
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode != 200 {
-		log.Printf("got response code %d - %s", resp.StatusCode, body)
-		return nil, errors.New("api request returned non 200 status code")
-	}
-	data, err := simplejson.NewJson(body)
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
-}
-
 func (p *OauthProxy) displayCustomLoginForm() bool {
 	return p.HtpasswdFile != nil && p.DisplayHtpasswdForm
 }
@@ -213,7 +191,7 @@ func (p *OauthProxy) redeemCode(host, code string) (string, string, error) {
 		return "", "", err
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	json, err := apiRequest(req)
+	json, err := api.Request(req)
 	if err != nil {
 		log.Printf("failed making request %s", err)
 		return "", "", err
@@ -243,7 +221,7 @@ func getEmail(access_token string, profile_url string) (string, error) {
 		log.Printf("failed building request %s", err)
 		return "", err
 	}
-	json, err := apiRequest(req)
+	json, err := api.Request(req)
 	if err != nil {
 		log.Printf("failed making request %s", err)
 		return "", err

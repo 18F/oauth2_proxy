@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/18F/oauth2_proxy/providers"
 )
 
 // Configuration Options that can be set by Command Line Flag, or Config File
@@ -35,11 +37,11 @@ type Options struct {
 
 	// These options allow for other providers besides Google, with
 	// potential overrides.
-	Provider       string   `flag:"provider" cfg:"provider"`
-	LoginUrl       string   `flag:"login-url" cfg:"login_url"`
-	RedeemUrl      string   `flag:"redeem-url" cfg:"redeem_url"`
-	ProfileUrl     string   `flag:"profile-url" cfg:"profile_url"`
-	Scope          string   `flag:"scope" cfg:"scope"`
+	Provider   string `flag:"provider" cfg:"provider"`
+	LoginUrl   string `flag:"login-url" cfg:"login_url"`
+	RedeemUrl  string `flag:"redeem-url" cfg:"redeem_url"`
+	ProfileUrl string `flag:"profile-url" cfg:"profile_url"`
+	Scope      string `flag:"scope" cfg:"scope"`
 
 	RequestLogging bool `flag:"request-logging" cfg:"request_logging"`
 
@@ -47,10 +49,7 @@ type Options struct {
 	redirectUrl   *url.URL
 	proxyUrls     []*url.URL
 	CompiledRegex []*regexp.Regexp
-	loginUrl      *url.URL
-	redeemUrl     *url.URL
-	profileUrl    *url.URL
-	provider      Provider
+	provider      providers.Provider
 }
 
 func NewOptions() *Options {
@@ -114,15 +113,19 @@ func (o *Options) Validate() error {
 		}
 		o.CompiledRegex = append(o.CompiledRegex, CompiledRegex)
 	}
-
-	o.loginUrl, msgs = parseUrl(o.LoginUrl, "login", msgs)
-	o.redeemUrl, msgs = parseUrl(o.RedeemUrl, "redeem", msgs)
-	o.profileUrl, msgs = parseUrl(o.ProfileUrl, "profile", msgs)
-	o.provider = NewProvider(o)
+	ParseProviderInfo(o, msgs)
 
 	if len(msgs) != 0 {
 		return fmt.Errorf("Invalid configuration:\n  %s",
 			strings.Join(msgs, "\n  "))
 	}
 	return nil
+}
+
+func ParseProviderInfo(o *Options, msgs []string) {
+	p := &providers.ProviderData{Scope: o.Scope}
+	p.LoginUrl, msgs = parseUrl(o.LoginUrl, "login", msgs)
+	p.RedeemUrl, msgs = parseUrl(o.RedeemUrl, "redeem", msgs)
+	p.ProfileUrl, msgs = parseUrl(o.ProfileUrl, "profile", msgs)
+	o.provider = providers.New(o.Provider, p)
 }
