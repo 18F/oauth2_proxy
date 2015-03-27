@@ -19,10 +19,10 @@ import (
 	"github.com/bitly/go-simplejson"
 )
 
-const pingPath = "/myusa/ping"
-const signInPath = "/myusa/oauth2/sign_in"
-const oauthStartPath = "/myusa/oauth2/start"
-const oauthCallbackPath = "/myusa/oauth2/callback"
+const pingPath = "/ping"
+const signInPath = "/oauth2/sign_in"
+const oauthStartPath = "/oauth2/start"
+const oauthCallbackPath = "/oauth2/callback"
 
 type OauthProxy struct {
 	CookieSeed     string
