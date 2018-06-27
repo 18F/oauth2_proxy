@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/BurntSushi/toml"
@@ -126,10 +127,27 @@ func main() {
 	}
 
 	validator := NewValidator(opts.EmailDomains, opts.AuthenticatedEmailsFile)
-	oauthproxy := NewSecureProxy(opts, validator)
+	oauthproxy := NewOAuthProxy(opts, validator)
+
+	if len(opts.EmailDomains) != 0 && opts.AuthenticatedEmailsFile == "" {
+		if len(opts.EmailDomains) > 1 {
+			oauthproxy.SignInMessage = fmt.Sprintf("Authenticate using one of the following domains: %v", strings.Join(opts.EmailDomains, ", "))
+		} else if opts.EmailDomains[0] != "*" {
+			oauthproxy.SignInMessage = fmt.Sprintf("Authenticate using %v", opts.EmailDomains[0])
+		}
+	}
+
+	if opts.HtpasswdFile != "" {
+		log.Printf("using htpasswd file %s", opts.HtpasswdFile)
+		oauthproxy.HtpasswdFile, err = NewHtpasswdFromFile(opts.HtpasswdFile)
+		oauthproxy.DisplayHtpasswdForm = opts.DisplayHtpasswdForm
+		if err != nil {
+			log.Fatalf("FATAL: unable to open %s %s", opts.HtpasswdFile, err)
+		}
+	}
 
 	s := &Server{
-		Handler: LoggingHandler(os.Stdout, oauthproxy, opts.RequestLogging, opts.RequestLoggingFormat),
+		Handler: LoggingHandler(os.Stdout, &oauthproxy, opts.RequestLogging, opts.RequestLoggingFormat),
 		Opts:    opts,
 	}
 	s.ListenAndServe()

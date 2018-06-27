@@ -116,27 +116,7 @@ func NewFileServer(path string, filesystemPath string) (proxy http.Handler) {
 	return http.StripPrefix(path, http.FileServer(http.Dir(filesystemPath)))
 }
 
-func NewSecureProxy(opts *Options, validator func(string) bool) http.Handler {
-	bareproxy := NewOAuthProxy(opts, validator)
-	var err error
-
-	if len(opts.EmailDomains) != 0 && opts.AuthenticatedEmailsFile == "" {
-		if len(opts.EmailDomains) > 1 {
-			bareproxy.SignInMessage = fmt.Sprintf("Authenticate using one of the following domains: %v", strings.Join(opts.EmailDomains, ", "))
-		} else if opts.EmailDomains[0] != "*" {
-			bareproxy.SignInMessage = fmt.Sprintf("Authenticate using %v", opts.EmailDomains[0])
-		}
-	}
-
-	if opts.HtpasswdFile != "" {
-		log.Printf("using htpasswd file %s", opts.HtpasswdFile)
-		bareproxy.HtpasswdFile, err = NewHtpasswdFromFile(opts.HtpasswdFile)
-		bareproxy.DisplayHtpasswdForm = opts.DisplayHtpasswdForm
-		if err != nil {
-			log.Fatalf("FATAL: unable to open %s %s", opts.HtpasswdFile, err)
-		}
-	}
-
+func secureServeMux(opts *Options, servemux http.Handler) http.Handler {
 	secureMiddleware := secure.New(secure.Options{
 		AllowedHosts:            opts.HttpAllowedHosts,
 		HostsProxyHeaders:       opts.HttpHostsProxyHeaders,
@@ -156,10 +136,10 @@ func NewSecureProxy(opts *Options, validator func(string) bool) http.Handler {
 		PublicKey:               opts.HttpPublicKey,
 		ReferrerPolicy:          opts.HttpReferrerPolicy,
 	})
-	return secureMiddleware.Handler(bareproxy)
+	return secureMiddleware.Handler(servemux)
 }
 
-func NewOAuthProxy(opts *Options, validator func(string) bool) *OAuthProxy {
+func NewOAuthProxy(opts *Options, validator func(string) bool) OAuthProxy {
 	serveMux := http.NewServeMux()
 	var auth hmacauth.HmacAuth
 	if sigData := opts.signatureData; sigData != nil {
@@ -186,7 +166,8 @@ func NewOAuthProxy(opts *Options, validator func(string) bool) *OAuthProxy {
 			}
 			log.Printf("mapping path %q => file system %q", path, u.Path)
 			proxy := NewFileServer(path, u.Path)
-			serveMux.Handle(path, &UpstreamProxy{path, proxy, nil})
+			serveMux.Handle(path,
+				&UpstreamProxy{path, proxy, nil})
 		default:
 			panic(fmt.Sprintf("unknown upstream protocol %s", u.Scheme))
 		}
@@ -215,7 +196,7 @@ func NewOAuthProxy(opts *Options, validator func(string) bool) *OAuthProxy {
 		}
 	}
 
-	return &OAuthProxy{
+	return OAuthProxy{
 		CookieName:     opts.CookieName,
 		CSRFCookieName: fmt.Sprintf("%v_%v", opts.CookieName, "csrf"),
 		CookieSeed:     opts.CookieSecret,
@@ -236,7 +217,7 @@ func NewOAuthProxy(opts *Options, validator func(string) bool) *OAuthProxy {
 
 		ProxyPrefix:        opts.ProxyPrefix,
 		provider:           opts.provider,
-		serveMux:           serveMux,
+		serveMux:           secureServeMux(opts, serveMux),
 		redirectURL:        redirectURL,
 		skipAuthRegex:      opts.SkipAuthRegex,
 		skipAuthPreflight:  opts.SkipAuthPreflight,

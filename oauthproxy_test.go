@@ -3,6 +3,8 @@ package main
 import (
 	"crypto"
 	"encoding/base64"
+	"fmt"
+	"html"
 	"io"
 	"io/ioutil"
 	"log"
@@ -213,7 +215,7 @@ func TestBasicAuthPassword(t *testing.T) {
 
 type PassAccessTokenTest struct {
 	provider_server *httptest.Server
-	proxy           *OAuthProxy
+	proxy           OAuthProxy
 	opts            *Options
 }
 
@@ -361,7 +363,7 @@ func TestDoNotForwardAccessTokenUpstream(t *testing.T) {
 
 type SignInPageTest struct {
 	opts                    *Options
-	proxy                   *OAuthProxy
+	proxy                   OAuthProxy
 	sign_in_regexp          *regexp.Regexp
 	sign_in_provider_regexp *regexp.Regexp
 }
@@ -458,7 +460,7 @@ func TestSignInPageSkipProviderDirect(t *testing.T) {
 
 type ProcessCookieTest struct {
 	opts          *Options
-	proxy         *OAuthProxy
+	proxy         OAuthProxy
 	rw            *httptest.ResponseRecorder
 	req           *http.Request
 	provider      TestProvider
@@ -846,7 +848,7 @@ func TestHttpBrowserXssFilterTrue(t *testing.T) {
 	opts.HttpBrowserXssFilter = true
 	opts.Validate()
 
-	proxy := NewSecureProxy(opts, func(string) bool { return true })
+	proxy := NewOAuthProxy(opts, func(string) bool { return true })
 	rw := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/", nil)
 	proxy.ServeHTTP(rw, req)
@@ -861,7 +863,7 @@ func TestHttpBrowserXssFilterFalseByDefault(t *testing.T) {
 	opts.EmailDomains = []string{"*"}
 	opts.Validate()
 
-	proxy := NewSecureProxy(opts, func(string) bool { return true })
+	proxy := NewOAuthProxy(opts, func(string) bool { return true })
 	rw := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/", nil)
 	proxy.ServeHTTP(rw, req)
@@ -878,11 +880,34 @@ func TestSecureRobotsTxt(t *testing.T) {
 	opts.HttpBrowserXssFilter = true
 	opts.Validate()
 
-	proxy := NewSecureProxy(opts, func(string) bool { return true })
+	proxy := NewOAuthProxy(opts, func(string) bool { return true })
 	rw := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/robots.txt", nil)
 	proxy.ServeHTTP(rw, req)
 	assert.Equal(t, 200, rw.Code)
 	assert.Equal(t, "User-agent: *\nDisallow: /", rw.Body.String())
+	assert.Equal(t, "1; mode=block", rw.HeaderMap.Get("X-XSS-Protection"))
+}
+
+func TestSecureServeMux(t *testing.T) {
+	opts := NewOptions()
+	opts.ClientID = "bazquux"
+	opts.ClientSecret = "foobar"
+	opts.CookieSecret = "xyzzyplugh"
+	opts.EmailDomains = []string{"*"}
+	opts.HttpBrowserXssFilter = true
+	opts.Validate()
+
+	servemux := http.NewServeMux()
+	servemux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
+	})
+
+	wrappedservemux := secureServeMux(opts, servemux)
+
+	rw := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/", nil)
+	wrappedservemux.ServeHTTP(rw, req)
+	assert.Equal(t, 200, rw.Code)
 	assert.Equal(t, "1; mode=block", rw.HeaderMap.Get("X-XSS-Protection"))
 }
